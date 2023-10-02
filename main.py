@@ -2,7 +2,7 @@ import json
 import questionary
 from pathlib import Path
 from typing import List
-from src.constants import DATA_FILE_PATHS, STORAGE_PATH
+from src.constants import DATA_FILE_PATHS, STORAGE_PATH, MIN_GAMES_PLAYED
 from src.fetch import get_all_moxfield_decklist_cards
 from src.stats import get_total_stats, count_card_stats
 
@@ -56,12 +56,12 @@ if __name__ == "__main__":
 
     print('\n')
 
-    relevant_card_stats = {key: card for key, card in card_stats.items() if card.get('total_games') >= 10}
+    relevant_card_stats = {key: card for key, card in card_stats.items() if card.get('total_games') >= MIN_GAMES_PLAYED}
 
     best_cards_first = sorted(relevant_card_stats, key=lambda card: card_stats.get(card, {}).get('win_percentage_diff'), reverse=True)
     worst_cards_first = sorted(relevant_card_stats, key=lambda card: card_stats.get(card, {}).get('win_percentage_diff'))
 
-    print('Best performing cards (with 10 or more games played)')
+    print(f'Best performing cards (with {MIN_GAMES_PLAYED} or more games played)')
     print('{: <31} {: <15} {: <20} {: <25}'.format('Card Name', 'Win Percentage', 'Win Percentage Diff', 'Games Played'))
     
     for index, card_name in enumerate(best_cards_first):
@@ -78,7 +78,7 @@ if __name__ == "__main__":
 
     print('\n')
 
-    print('Worst performing cards (with 10 or more games played)')
+    print(f'Worst performing cards (with {MIN_GAMES_PLAYED} or more games played)')
     print('{: <31} {: <15} {: <20} {: <25}'.format('Card Name', 'Win Percentage', 'Win Percentage Diff', 'Games Played'))
 
     for index, card_name in enumerate(worst_cards_first):
