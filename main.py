@@ -39,22 +39,58 @@ if __name__ == "__main__":
             json.dump(deckprofiles, f, sort_keys = True, ensure_ascii=False, indent=4)
 
     # Get metrics
-    total_wins, total_not_wins, total_games, total_decks, total_win_percentage = get_total_stats(deckprofiles)
+    totals = get_total_stats(deckprofiles)
 
-    print(f'total_wins:              {total_wins}')
-    print(f'total_not_wins:          {total_not_wins}')
-    print(f'total_games:             {total_games}')
-    print(f'total_decks:             {total_decks}')
-    print(f'total_win_percentage:    {total_win_percentage}')
+    total_wins, total_not_wins, total_games, total_decks, total_win_percentage = totals
 
+    print(f'Total Wins:              {total_wins}')
+    print(f'Total Not Wins:          {total_not_wins}')
+    print(f'Total Games:             {total_games}')
+    print(f'Total Decks:             {total_decks}')
+    print(f'Total Win Percentage:    {total_win_percentage:.2%}')
 
     # Get individual card stats
-    card_stats = count_card_stats(deckprofiles=deckprofiles)
+    card_stats = count_card_stats(deckprofiles=deckprofiles, totals=totals)
 
-    for index, (card_name, card) in enumerate(card_stats.items()):
-        print(f'{card_name:30s}: {card}')
+    print(f'Total Unique Cards:      {len(card_stats)}')
 
-        if index == 9:
+    print('\n')
+
+    relevant_card_stats = {key: card for key, card in card_stats.items() if card.get('total_games') >= 10}
+
+    best_cards_first = sorted(relevant_card_stats, key=lambda card: card_stats.get(card, {}).get('win_percentage_diff'), reverse=True)
+    worst_cards_first = sorted(relevant_card_stats, key=lambda card: card_stats.get(card, {}).get('win_percentage_diff'))
+
+    print('Best performing cards (with 10 or more games played)')
+    print('{: <31} {: <15} {: <20} {: <25}'.format('Card Name', 'Win Percentage', 'Win Percentage Diff', 'Games Played'))
+    
+    for index, card_name in enumerate(best_cards_first):
+        card = card_stats[card_name]
+
+        card_win_percentage = card.get('win_percentage')
+        win_percentage_diff = card.get('win_percentage_diff')
+        games_played = card.get('total_games')
+
+        print(f'{card_name:30s}:{card_win_percentage: >7.2%}{win_percentage_diff: >+17.2%}{games_played:17n}')
+
+        if index == 19:
+            break
+
+    print('\n')
+
+    print('Worst performing cards (with 10 or more games played)')
+    print('{: <31} {: <15} {: <20} {: <25}'.format('Card Name', 'Win Percentage', 'Win Percentage Diff', 'Games Played'))
+
+    for index, card_name in enumerate(worst_cards_first):
+        card = card_stats[card_name]
+
+        card_win_percentage = card.get('win_percentage')
+        win_percentage_diff = card.get('win_percentage_diff')
+        games_played = card.get('total_games')
+
+        print(f'{card_name:30s}:{card_win_percentage: >7.2%}{win_percentage_diff: >+17.2%}{games_played:17n}')
+
+        if index == 19:
             break
 
     #TODO: Add plotly for data visualization
