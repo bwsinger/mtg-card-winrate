@@ -3,8 +3,8 @@ import questionary
 from pathlib import Path
 from typing import List
 from src.constants import DATA_FILE_PATHS, STORAGE_PATH
-from src.mytypes import DeckProfile
 from src.fetch import get_all_moxfield_decklist_cards
+from src.stats import get_total_stats, count_card_stats
 
 if __name__ == "__main__":
     
@@ -39,15 +39,22 @@ if __name__ == "__main__":
             json.dump(deckprofiles, f, sort_keys = True, ensure_ascii=False, indent=4)
 
     # Get metrics
-    total_wins = sum([deck.get('wins') for deck in deckprofiles])
-    total_not_wins = sum([deck.get('draws') + deck.get('losses') for deck in deckprofiles])
-    total_games = total_wins + total_not_wins
-    total_win_percentage = round((total_wins / total_games) * 100, 2)
+    total_wins, total_not_wins, total_games, total_decks, total_win_percentage = get_total_stats(deckprofiles)
 
     print(f'total_wins:              {total_wins}')
     print(f'total_not_wins:          {total_not_wins}')
     print(f'total_games:             {total_games}')
+    print(f'total_decks:             {total_decks}')
     print(f'total_win_percentage:    {total_win_percentage}')
 
+
+    # Get individual card stats
+    card_stats = count_card_stats(deckprofiles=deckprofiles)
+
+    for index, (card_name, card) in enumerate(card_stats.items()):
+        print(f'{card_name:30s}: {card}')
+
+        if index == 9:
+            break
 
     #TODO: Add plotly for data visualization
