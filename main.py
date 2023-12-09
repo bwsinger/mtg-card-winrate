@@ -2,11 +2,16 @@ import json
 import questionary
 from pathlib import Path
 from typing import List
-from src.constants import DATA_FILE_PATHS, STORAGE_PATH, MIN_GAMES_PLAYED
+from src.constants import DATA_PATH, DATA_FILE_PATHS, STORAGE_PATH, MIN_GAMES_PLAYED, CSV_PATH
 from src.fetch import get_all_moxfield_decklist_cards
 from src.stats import get_total_stats, count_card_stats
 
 if __name__ == "__main__":
+
+    # Create all directories
+    Path(DATA_PATH).mkdir(exist_ok=True)
+    STORAGE_PATH.mkdir(exist_ok=True)
+    CSV_PATH.mkdir(exist_ok=True)
     
     # Prompt user to select from a list of deck data from the /data folder
     # NOTE: Data comes from edhtop16.com/api/req API
@@ -43,16 +48,27 @@ if __name__ == "__main__":
 
     total_wins, total_not_wins, total_games, total_decks, total_win_percentage = totals
 
-    print(f'Total Wins:              {total_wins}')
-    print(f'Total Not Wins:          {total_not_wins}')
-    print(f'Total Games:             {total_games}')
-    print(f'Total Decks:             {total_decks}')
-    print(f'Total Win Percentage:    {total_win_percentage:.2%}')
+    # print(f'Total Wins:              {total_wins}')
+    # print(f'Total Not Wins:          {total_not_wins}')
+    # print(f'Total Games:             {total_games}')
+    # print(f'Total Decks:             {total_decks}')
+    # print(f'Total Win Percentage:    {total_win_percentage:.2%}')
+
+    # # Get individual card stats
+    # card_stats = count_card_stats(deckprofiles=deckprofiles, totals=totals)
+
+    # print(f'Total Unique Cards:      {len(card_stats)}')
+
+    print(f'Total Wins:,{total_wins}')
+    print(f'Total Not Wins:,{total_not_wins}')
+    print(f'Total Games:,{total_games}')
+    print(f'Total Decks:,{total_decks}')
+    print(f'Total Win Percentage:,{total_win_percentage:.2%}')
 
     # Get individual card stats
     card_stats = count_card_stats(deckprofiles=deckprofiles, totals=totals)
 
-    print(f'Total Unique Cards:      {len(card_stats)}')
+    print(f'Total Unique Cards:,{len(card_stats)}')
 
     print('\n')
 
@@ -92,5 +108,23 @@ if __name__ == "__main__":
 
         if index == 19:
             break
+
+    print('\n')
+
+    # Make a spreadsheet of all the results
+    import csv
+    with open(CSV_PATH.joinpath(f'{filename}.csv'), 'w', newline='') as csvfile:
+        csvwriter = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+
+        csvwriter.writerow(['Card Name', 'Win Percentage', 'Win Percentage Diff', 'Games Played'])
+        
+        csv_card_list = list()
+
+        for card_name in best_cards_first:
+            card = card_stats[card_name]
+
+            csv_card_list.append([card_name, f"{card.get('win_percentage'):.2%}", f"{card.get('win_percentage_diff'):+.2%}", f"{card.get('total_games')}"])
+
+        csvwriter.writerows(csv_card_list)
 
     #TODO: Add plotly for data visualization
